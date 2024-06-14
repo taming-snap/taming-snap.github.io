@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<!-- Bootstrap CSS -->
+	<link href="resources/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="./resources/bulma.min.css">
+        <link rel="stylesheet" href="./resources/bulma-carousel.min.css">
+        <link rel="stylesheet" href="./resources/bulma-slider.min.css">
+        <link rel="stylesheet" href="./resources/fontawesome.all.min.css">
+        <link rel="stylesheet" href="./resources/index.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+		
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script defer src="./resources/fontawesome.all.min.js"></script>
+        <script src="./resources/bulma-carousel.min.js"></script>
+        <script src="./resources/bulma-slider.min.js"></script>
+        <script src="./resources/index.js"></script>
+
+	<title>Taming Data and Transformers for Audio Generation</title>
+
+	
+</head>
+<body>
+
+	<section class="jumbotron text-center">
+            <h1 class="publication-title">Taming Data and Transformers for Audio Generation</h1>
+
+			<!-- <br/>
+			<div class="conference">
+				<p>Arxiv 2024</p>
+			</div> -->
+
+            <br/>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">
+				<p class="author">
+					<span class="author"><a target="_blank" href="https://moayedha.com/">Moayed Haji-Ali,</a>&nbsp;</span>
+					<span class="author"><a target="_blank" href=https://www.willimenapace.com>Willi Menapace,</a>&nbsp;</span>
+					<span class="author"><a target="_blank" href=https://aliaksandrsiarohin.github.io/aliaksandr-siarohin-website/>Aliaksandr Siarohin,</a>&nbsp;</span>
+					<span class="author"><a target="_blank" href=https://www.guhabalakrishnan.com>Guha Balakrishnan,</a>&nbsp;</span>
+					<span class="author"><a target="_blank" href=http://www.stulyakov.com>Sergey Tulyakov,</a>&nbsp;</span>
+					<span class="author"><a target="_blank" href="https://vislang.ai/">Vicente Ordonez</a>&nbsp;</span>
+				  </p>
+              <span class="author-block">
+            </div>
+
+			<div class="collabs", align-items="center">
+				<img class="rice-icon" src="./assets/logos/rice.svg" alt="Rice University Logo", height="10px">
+				<div class="snap">
+					<img src="./assets/logos/snap.png" alt="Snap Research Logo">
+					<span>Snap Research</span>
+				</div>
+			</div>
+
+
+	</section>
+
+        <!-- Abstract. -->
+        <div class="container pt-5">
+           <div class="content has-text-justified">
+	    <div class="teaser">
+              <center>
+                      <h2 class="title is-3">Abstract</h2>
+	      	  </center>
+	    </div>
+
+            <br/>
+	    <p class='lead'>
+			Generating ambient sounds and effects is a challenging problem due to data scarcity and often insufficient caption quality, making it difficult to employ large-scale generative models for the task.
+			In this work, we tackle the problem by introducing two new models. First, we propose AutoCap, a high-quality automatic audio captioning model.
+			We show that by leveraging metadata available with the audio modality, we can substantially improve the quality of captions. 
+			AutoCap reaches CIDEr score of 83.2, marking a 3.2% improvement from the best available captioning model. 
+			We then use AutoCap to caption clips from existing datasets, obtaining 761,000 of audio clips with high quality captions, forming the largest avaiable audio-text dataset.
+			Second, we propose GenAu, an efficient transformer-based audio generation architecture that we scale up to 1.25B parameters and train our new dataset.
+			When compared to state-of-the-art audio generators, GenAu obtains an FAD score of 1.13, and IS score of 11.53 and a CLAP score of 0.314, indicating significantly improved quality of generated audio compared to best previous works.
+			This shows that the <i>quality</i> of data is often as important as its quantity. Besides, since AutoCap is fully automatic, new audio samples can be added to the training dataset, unlocking training of even larger generative models for audio synthesis
+	    </p>
+
+
+
+		<div class="models">
+			<h2 class="title is-3">Proposed Models</h2>
+			<div class="models-container">
+				<div class="model" >
+					<img style="width:90%" src="./assets/figures/autocap.png" alt="AutoCap Model Diagram"/>
+					<!-- <p class="lead">
+						<strong>AutoCap:</strong> An overview of the proposed architecture for our AutoCap model. Frozen CLAP and HTSAT audio encoders produce the audio representation.
+						To reduce the large number of tokens produced by the HTSAT encoder, we use a Q-Former, reducing the amount of input tokens by a factor of 4.
+						A pretrained BART encoder-decoder aggregates the tokens, producing the output caption.
+					</p> -->
+				</div>
+				<div class="model" style="padding-top: 50px">
+					<img style="width:100%" src="./assets/figures/genau.png" alt="GenAu Model Diagram"/>
+					<!-- <p class="lead">
+						<strong>GenAu:</strong> Overview of our GenAu model based on an FIT-based latent audio generator. A frozen 1D-VAE produces the latent audio representation.
+						Input patches are divided into groups and processed by 'local' attention layers. 'read' and 'write' operations implemented as cross attention layers transfer information between patches and latents.
+						Finally, 'global' attention layers process latent tokens with attention spanning over all groups, enabling global communication.
+					</p> -->
+				</div>
+			</div>
+
+
+			<div class="models-container">
+				<div class="model" style="padding-right: 20px">
+					<p class="lead">
+						<strong>AutoCap:</strong> We employ frozen CLAP and HTSAT audio encoders to produce the audio representation. We then compact this representation into <b>4x</b> less tokens using a <b style="color: #e67a59;">Q-Former</b> module. This enhances the efficieny 
+						of the captioning model and aligning the audio representation with the language representation of a pretrained BART encoder-decoder model that aggregates these tokens along with tokens extected from useful metadata to produce the output caption.
+					</p>
+				</div>
+				<div class="model" style="padding-left: 20px">
+					<p class="lead">
+						<strong>GenAu:</strong> We use a frozen audio 1D-VAE to produce a sequence of latents from a Mel-Spectrogram representation. Based on the FIT architecture, these latents are patchified and divided into groups which processed by <b style="color: #de67d0;">local</b> attention layers. The <b style="color: #e67a59;">read</b> and <b style="color: #141fee;">write</b> operations are implemented as cross attention layers that transfer information between input latents and learnable latent tokens.
+						Finally, <b style="color: #99e292;">global</b> attention layers process latent tokens with attention spanning over all groups of latent tokens, enabling global communication.
+					</p>
+				</div>
+			</div>
+
+		</div>
+		
+		
+	  </div>
+	  </div>
+
+	  <br/>
+	  <div class="container pt-5">
+		<div class="content has-text-justified">
+	  <h2 class="title is-3">Comparison of AutoCap with state-of-the-art audio captioning methods:</h2>
+	  </div>
+	  </div>
+	  <div class="container shadow p-5 mb-5 bg-white rounded">
+
+		<p class="mb-0">
+		  Here we compare our captioning method with ENCLAP and CoNeTTE. We show the original audio for <b>AudioCaps</b> testset in the first column and as well as ground truth prediction in the second. 
+		  In the thrird column we show caption predicted by our method. Fourth and Fifth columns corresponds to the baselines.
+		</p>
+		<div class="container pt-3 table-responsive">
+
+
+			<table class="table table-hover" id="supervision-efficiency-table">
+				<thead>
+				  <tr>
+					 
+					<th style="text-align: center">Input</th>
+				  
+	 
+					<th style="text-align: center">Original Caption</th>
+				  
+	 
+					<th style="text-align: center">Ours</th>
+				  
+	 
+					<th style="text-align: center">ENCLAP</th>
+				  
+	 
+					<th style="text-align: center">CoNeTTE</th>
+				  
+				  </tr>
+				</thead>
+				<tbody>
+					
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/BXxlqaDvdaA.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">A man talking as ocean waves trickle and splash while wind blows into a microphone</font></td>   <td><font size="-1">A man speaks as wind blows and <b style="color: rgb(12, 44, 174);">water splashes</b> </font></td>   <td><font size="-1">A man is speaking and wind is blowing</font></td>   <td><font size="-1">A man is speaking and wind is blowing</font></td> </tr>
+			   
+	
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/AUJPx81qKtY.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">An adult male speaks, birds chirp in the background, and many insects are buzzing</font></td>   <td><font size="-1">Birds chirp in the distance, followed by a man speaking nearby, after which <b style="color: rgb(12, 44, 174);">insects buzz</b> nearby</font></td>   <td><font size="-1">Birds are chirping and a man speaks</font></td>   <td><font size="-1">A man speaking with birds chirping in the background.</font></td> </tr>
+			   
+	
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/Jfaj4P3us9M.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">A telephone dialing tone followed by a plastic switch flipping on and off</font></td>   <td><font size="-1">A telephone dialing followed by a series of plastic clicking then plastic clanking before <b style="color: rgb(12, 44, 174);">plastic thumps on a surface</b> </font></td>   <td><font size="-1">A telephone dialing followed by a series of electronic beeps</font></td>   <td><font size="-1">A telephone ringing followed by a beep.</font></td> </tr>
+			   
+	
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/27HIamF8pKo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">A running train and then a train whistle</font></td>   <td><font size="-1">A train moves <b style="color: rgb(12, 44, 174);">getting closer</b> and a horn is triggered</font></td>   <td><font size="-1">A train running on railroad tracks followed by a train horn blowing as wind blows into a microphone</font></td>   <td><font size="-1">A train horn blows and a steam whistle is blowing</font></td> </tr>
+			   
+	
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/4IeDBwyQ9ZQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">A female speaking with some rustling followed by another female speaking</font></td>   <td><font size="-1"><b style="color: rgb(12, 44, 174);">Dishes</b> are being moved and a woman laughs and speaks</font></td>   <td><font size="-1">A woman speaking followed by clanking</font></td>   <td><font size="-1">A woman is speaking and a child is laughing.</font></td> </tr>
+			   
+	
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/Efk5kdn9lR8.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">A child is speaking followed by a door moving</font></td>   <td><font size="-1">A child speaks followed by a <b style="color: rgb(12, 44, 174);">loud crash and a scream</b> </font></td>   <td><font size="-1">A young girl speaks followed by a loud bang</font></td>   <td><font size="-1">A woman speaking followed by a door opening and closing.</font></td> </tr>
+			   
+	
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/oNHCc_izsDE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">Water splashing as a baby is laughing and birds chirp in the background</font></td>   <td><font size="-1">A  <b style="color: rgb(12, 44, 174);">baby laughs and splashes</b>, and an adult female speaks</font></td>   <td><font size="-1">A baby laughs and splashes in water</font></td>   <td><font size="-1">A baby is laughing and people are talking.</font></td> </tr>
+			   
+	
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/ptIksg9KEac.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">Leaves rustling in the wind with dogs barking and birds chirping</font></td>   <td><font size="-1">Birds <b style="color: rgb(12, 44, 174);">chirp in the distance</b>, and then a dog barks nearby</font></td>   <td><font size="-1">Birds chirp and a dog barks</font></td>   <td><font size="-1">A dog is barking and a person is walking.</font></td> </tr>
+			   
+	
+					<tr height="100px"><div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/audio-samples/u8bQf0SnCVI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div>  <td><font size="-1">Tapping followed by water spraying and more tapping</font></td>   <td><font size="-1">Some light rustling <b style="color: rgb(12, 44, 174);">followed by a clank</b> then water pouring</font></td>   <td><font size="-1">A faucet is turned on and runs</font></td>   <td><font size="-1">A toilet is flushed and water is running.</font></td> </tr>
+			   
+				</tbody>
+			</table>	
+	
+		</div>
+    </div>
+
+
+	<div class="container pt-5">
+		<div class="content has-text-justified">
+		<h2 class="title is-3">Comparison of GenAu with text-to-audio generation methods:</h2>
+	  </div>
+	  </div>
+	
+	<div class="container shadow p-5 mb-5 bg-white rounded">
+		<p class="mb-0">
+		  Here we our method with state-of-the-art methods. First row show the method name, while the fist column shows the input text used to generate the audio.
+		</p>
+		<div class="container pt-3 table-responsive">
+
+
+			<table class="table table-hover" id="supervision-efficiency-table">
+				<thead>
+				  <tr>
+					 
+					<th style="text-align: center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Input&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+				  
+	 
+					<th style="text-align: center">Ours</th>
+				  
+	 
+					<th style="text-align: center">Make-an-audio</th>
+				  
+	 
+					<th style="text-align: center">AudioLDM</th>
+				  
+	 
+					<th style="text-align: center">AudioLDM2</th>
+				  
+	 
+					<th style="text-align: center">Stable Audio</th>
+				  
+	 
+					<th style="text-align: center">Tango</th>
+				  
+				  </tr>
+				</thead>
+				<tbody>
+					
+					<tr height="100px"> <td><font size="-1">A muffled man talking as a goat baas before and after two goats baaing in the distance while wind blows into a microphone</font></td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Ours/Y3kBlVLkN0zo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Make-an-audio/Y3kBlVLkN0zo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM/Y3kBlVLkN0zo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM2/Y3kBlVLkN0zo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Stable Audio/Y3kBlVLkN0zo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Tango/Y3kBlVLkN0zo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="100px"> <td><font size="-1">A small child and woman speak with splashing water</font></td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Ours/YENTi8Sn4vdM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Make-an-audio/YENTi8Sn4vdM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM/YENTi8Sn4vdM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM2/YENTi8Sn4vdM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Stable Audio/YENTi8Sn4vdM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Tango/YENTi8Sn4vdM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="100px"> <td><font size="-1">Horses growl and clop hooves.</font></td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Ours/YJZloTOdIY_c.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Make-an-audio/YJZloTOdIY_c.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM/YJZloTOdIY_c.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM2/YJZloTOdIY_c.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Stable Audio/YJZloTOdIY_c.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Tango/YJZloTOdIY_c.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="100px"> <td><font size="-1">A woman speaks with chirping frogs and distant music playing</font></td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Ours/YW4GEwnXc9tQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Make-an-audio/YW4GEwnXc9tQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM/YW4GEwnXc9tQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM2/YW4GEwnXc9tQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Stable Audio/YW4GEwnXc9tQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Tango/YW4GEwnXc9tQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="100px"> <td><font size="-1">A vehicle driving by while splashing water as a stream of water trickles and flows followed by a thunder roaring in the distance while wind blows into a microphone</font></td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Ours/YYk274Wr5iIE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Make-an-audio/YYk274Wr5iIE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM/YYk274Wr5iIE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM2/YYk274Wr5iIE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Stable Audio/YYk274Wr5iIE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Tango/YYk274Wr5iIE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="100px"> <td><font size="-1">Large church bells ring as rain falls on a hard surface and wind blows lightly into a microphone</font></td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Ours/YwOFBldBFRNk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Make-an-audio/YwOFBldBFRNk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM/YwOFBldBFRNk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM2/YwOFBldBFRNk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Stable Audio/YwOFBldBFRNk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Tango/YwOFBldBFRNk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="100px"> <td><font size="-1">A man speaks with a high frequency hum with some banging and clanking</font></td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Ours/YxUWSHYoslPQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Make-an-audio/YxUWSHYoslPQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM/YxUWSHYoslPQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/AudioLDM2/YxUWSHYoslPQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Stable Audio/YxUWSHYoslPQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Qualitative comparisons/Tango/YxUWSHYoslPQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+				</tbody>
+			  </table>
+	
+	
+	
+		</div>
+    </div>
+
+
+	<div class="container pt-5">
+		<div class="content has-text-justified">
+		<h2 class="title is-3">Ablating different variants of GenAu:</h2>
+	  </div>
+	  </div>
+	<div class="container shadow p-5 mb-5 bg-white rounded">
+		<p class="mb-0">
+		  Here we compare different variants of our method. At the top row we show different captions used for generation. In the second row we show a U-Net baseline. 
+		  The next 3 rows is our small model trained on AudioCaps, on full dataset without recaption and our full recaptioned dataset. The final two rows show our large model trained on AudioCaps and full recaptioned dataset.
+		</p>
+		<div class="container pt-3 table-responsive">
+
+			<table class="table table-hover" id="supervision-efficiency-table">
+				<thead>
+				  <tr>
+					 
+					<th style="text-align: center"></th>
+				  
+	 
+					<th style="text-align: center"> <font size="-1">A person briefly talks followed quickly by toilet flushing and another voice from another person</font> </th>
+				  
+	 
+					<th style="text-align: center"> <font size="-1">A gun cocking then firing as metal clanks on a hard surface followed by a man talking during an electronic laser effect as gunshots and explosions go off in the distance</font> </th>
+				  
+	 
+					<th style="text-align: center"> <font size="-1">Motorcycle starting and taking off</font> </th>
+				  
+	 
+					<th style="text-align: center"> <font size="-1">A female laughs, snoring occurs, and an adult male speaks in the background</font> </th>
+				  
+				  </tr>
+				</thead>
+				<tbody>
+					
+					<tr height="75px" style="border-bottom: 3px solid black;"> <td style="text-align: center; vertical-align: middle;">U-Net</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/U-Net/Y_z6pymOet7g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/U-Net/Y-NrFeH-kBSM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/U-Net/Y0rSETXszQM0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/U-Net/Y4YodC6RnplI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px" > <td style="text-align: center; vertical-align: middle;">Small AudioCaps</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small AudioCaps/Y_z6pymOet7g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small AudioCaps/Y-NrFeH-kBSM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small AudioCaps/Y0rSETXszQM0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small AudioCaps/Y4YodC6RnplI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px" > <td style="text-align: center; vertical-align: middle;">Small without Recaptioning</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small without Recaptioning/Y_z6pymOet7g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small without Recaptioning/Y-NrFeH-kBSM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small without Recaptioning/Y0rSETXszQM0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small without Recaptioning/Y4YodC6RnplI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px" style="border-bottom: 3px solid black;"> <td style="text-align: center; vertical-align: middle;">Small Full</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small Full/Y_z6pymOet7g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small Full/Y-NrFeH-kBSM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small Full/Y0rSETXszQM0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Small Full/Y4YodC6RnplI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px" > <td style="text-align: center; vertical-align: middle;">Large AudioCaps</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Large AudioCaps/Y_z6pymOet7g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Large AudioCaps/Y-NrFeH-kBSM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Large AudioCaps/Y0rSETXszQM0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Large AudioCaps/Y4YodC6RnplI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px" > <td style="text-align: center; vertical-align: middle;">Large Full</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Large Full/Y_z6pymOet7g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Large Full/Y-NrFeH-kBSM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Large Full/Y0rSETXszQM0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div> <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/ablations/Large Full/Y4YodC6RnplI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+				</tbody>
+			  </table>	
+	
+		</div>
+    </div>
+
+	<div class="container pt-5">
+		<div class="content has-text-justified">
+		<h2 class="title is-3">Non-curated list of samples generated by GenAu:</h2>
+	  </div>
+	  </div>
+	<div class="container shadow p-5 mb-5 bg-white rounded">
+		<p class="mb-0">
+			Here we provide an non-curated list of samples generated from AudioCaps test captions.
+		</p>
+		<div class="container pt-3 table-responsive">
+
+			
+			<table class="table table-hover" id="supervision-efficiency-table">
+				<thead>
+				  <tr>
+					 
+					<th style="text-align: center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Input&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+				  
+	 
+					<th style="text-align: center">Sample</th>
+				  
+				  </tr>
+				</thead>
+				<tbody>
+					
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaks followed by a toilet flush</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_z6pymOet7g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man making a horn sound and then speaking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_z-bidQYVao.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A woman talks and a baby whispers</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_xylo5_IiaM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A group of people laughing followed by farting</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_w2pA1VeB40.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A woman talking followed by a group of people laughing as plastic crinkles</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_oKXrY5Ff0g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Sustained industrial engine noise</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_iUX8CibElk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A vehicle engine revving as a crowd of people talk</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_ezm-TpKj1w.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A speedboat is racing across water with loud wind noise</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_duNX6Vyd6g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A kid crying as a man and a woman talk followed by a car door opening then closing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_YS5uKWoB6g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A cat meowing and young female speaking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_GI7meqlYZk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Police car siren starts with two horn blasts then becomes a high pitched wail</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_C2HinL8VlM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Rustling pigeons coo</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_BSmz3SEW1w.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man and woman laughing followed by a man shouting then a woman laughing as a child laughs</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_AcJVyToQUQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man talking while wood clanks on a metal pan followed by gravel crunching as food and oil sizzle</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y_9mgOkzm-xg.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A motor is running, and metal clanging is present</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3n05BjV7r7M.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A muffled man talking as a goat baas before and after two goats baaing in the distance while wind blows into a microphone</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3kBlVLkN0zo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">An adult male is speaking in a quiet environment</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3iLGu2Omgrw.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A small motor is buzzing and water is running, splashing and gurgling</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3hzy-FL24no.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man talking followed by a brush scrapping then liquid spraying in the background</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3ghVB-KaU_E.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">An idle vehicle engine running followed by a gear cranking then revving</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3fomsZXG3aM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A cat meows and hisses</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3ejndVEAcmQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Ocean waves crashing as a man talks in the distance and wind heavily blows into a microphone</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3MoF8myFs8Y.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaking then a baby crying, duck quacking in background and finally a woman speaking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3IguMJkqpl4.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Some groaning followed by a woman speaking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y3IScngdQA4I.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A crowd murmurs as a siren blares and then stops at a distance</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2ymiXjImwGs.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A large bell rings out multiple times</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2t82STv2GR8.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A cat meowing once with a thud</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2sZhC_mKeic.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A drilling sound with humming in the background</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2msevPMQB4M.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A cat meowing twice</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2j8pxiFvElM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A rolling train blows its horn multiple times</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2ceUOv8A3FE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaks and a vehicle passes</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2bq2lc3DLwM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A woman is speaking over a microphone</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2a6GNu6uCDE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A vehicle engine revving then accelerating at a high rate as a metal surface is whipped followed by tires skidding</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2UNuMbxz9ds.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Instrumental music playing as a woman speaks followed by rain pouring then rain falling on a surface</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2RjqBRzmxaM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A mid-size motor vehicle engine accelerates and is accompanied by hissing and spinning tires, then it decelerates and an adult male begins to speak</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2KR0C5ysO8o.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Humming of an accelerating engine with wind passing and rustling</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2KEfkDO6hlA.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Humming and vibrating of a power tool with some high frequency squealing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2JutOgAnqWA.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A car is passing by with leaves rustling</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2JV3emH50XU.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Train engine as it travels</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2ItTq2JShdU.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A dog barks with distant birds chirping then people speak</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2EsxcKe1A4w.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Some child speaking in the distant and a toilet flushing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2ErfX6ZT5pM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man talking while bongos play followed by frogs croaking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y2ABngPM3raQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A group of people talking in the background as compressed air sprays while a tin can rattles followed by a man talking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1wW0YJQ-Xa0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">An adult female speaks in a quiet environment</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1vCYiVvZ7VE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A subway train signal plays followed by a bell chiming followed by a horn honking as a crowd of people talk in the background</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1slvoNgzBLE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Wind blowing and water splashing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1nUOGZgSzZo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Loud humming followed by hissing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1j5NMuq1X30.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Thuds on floor</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1ed87LLY97k.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Waves and wind rake a shore</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1e98HeU9Vrg.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Clicking and sputtering of a running engine with people speaking and wind blowing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1a2XWJ8NA_Q.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Splashing water with children speaking and people screaming with a distant blow of a whistle</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1_z6NcidGzM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man is speaking followed by a tap and motorcycle turning on</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1WTSW96XP6E.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Metal shuffling followed by plastic clicking as wind blows into a microphone</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1Uh74_rZ72k.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A woman speaking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1QNLMF-Kl_s.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A stream of water trickling as plastic clanks against a metal surface followed by water pouring down a drain alongside a camera muffling</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1PvMtRIlZNI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">An adult male gives a speech</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1OyEgzXCkYE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">An aircraft engine running then slowing down after a plastic click</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1Og2TJ3bXW0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A sound of vibrating motor</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1N_DtRpdAp8.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Male speaking, laughter and shouting and clapping</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1L_OyngNZMA.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A woman speaks briefly, and a muffled engine rumbles</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1IoHRTUp86c.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Plastic clacking followed by as person breathing then liquid pouring into containers</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1HCuBnPLMqQ.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A woman and a man talking as another man talks softly and papers shuffle in the background</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1GgEpRZDWN0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Someone burps and then laughs</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1FNJbN-eHY4.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Chirping birds near and far</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y1DKLyH3FixM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A dog barking as a man is talking while birds chirp and wind blows into a microphone</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0yxEvdnimGg.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A sudden horn blare as a train passes</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0yETgW44MZU.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man is speaking while typing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0ury8KHQdL4.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Motorcycle starting then driving away</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0rSETXszQM0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A group of men speaking as cannons fire while rain falls and water splashes followed by thunder roaring</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0qbHT34qTZE.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaking followed by another man speaking with some rustling</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0jGH7A_hpBM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Waves roll slowly and water swirls as the wind blows</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0fMXnvD38zI.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A train sounds horn while traveling on train track</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0a9wVat2PWk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Water splashing and trickling as wind blows into a microphone while a man speaks over a radio</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0_ogYGDGDco.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Some rustling then silence then traffic passing in the distance with a cat meowing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0_K6OKtoBBU.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A vehicle motor running idle followed by a car horn honking then a group of men groaning</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0UJtGcoPYa0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A car engine is revving while driving</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0Rpjl1AO-P0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Cats meowing and then wind</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0On6-JiVwRs.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">There is a mature male talking to some animals</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0NGSrwioYjA.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaking on a microphone as a crowd of people laugh followed by glass clinking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0G7rb74R-2A.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">An engine and speech on a loudspeaker</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0Dt-pH0pW-Y.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">An idle vehicle engine running normally before stuttering</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y0AsXkZkqelg.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">An engine revving and then tires squealing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-oy0BkpMGAk.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Chainsaw being run</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-nQHwrRLfc0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaks with low speech in the background</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-mhFGevxLUg.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Race cars are racing followed by people talking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-mb4Fw4Z0xg.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">The sound of horn from a car approaching from a distance</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-aYumc8KoXg.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A long burp ends in a sigh</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-Sz4z0QwEuM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaking as vehicles drive by and leaves rustling</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-SkjbQVgJ0M.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A chainsaw cutting as wood is cracking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-R69Fa-mCaY.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A cat meows and a woman speaks</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-NsC63dA01g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A gun cocking then firing as metal clanks on a hard surface followed by a man talking during an electronic laser effect as gunshots and explosions go off in the distance</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-NrFeH-kBSM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A male voice and a machine buzzing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-JP1GqPEKtw.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Speech followed by quietness and a man speaks and laughs</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-FW109cbv0g.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaks with some clinking and clanking</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-EaZ7EJJUl0.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A man speaking as rain lightly falls followed by thunder</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-EQByFLFqig.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A bell is ringing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-DmjkgWa-rw.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A woman is speaking from a microphone</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-CcGuq0yoKo.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Wind is blowing and heavy rain is falling and splashing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-BUWGM7qeUM.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">Muffled sounds followed by metal being hit</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y-AheI8Epim4.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+	
+					<tr height="75px"> <td style="text-align: center; vertical-align: middle;">A vehicle driving as a man and woman are talking and laughing</td>  <div class="audio-container"> <td><audio controls="" controlslist="nodownload" class="px-1"> <source src="data/Random Results/Sample/Y--0w1YA1Hm4.wav" type="audio/wav">Your browser does not support the audio element.</audio></td> </div></tr>
+			   
+				</tbody>
+			  </table>
+	
+	
+	
+	
+	
+		</div>
+    </div>
+
+</body>
+</html>

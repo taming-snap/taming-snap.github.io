@@ -1,0 +1,261 @@
+body {
+  /* font-family: 'Noto Sans', sans-serif;
+  color: #1f1e1d;
+  background-color: #f5ece5; */
+  /* font-family: 'GT Ultra', sans-serif !important; */
+  font-family: 'GT Ultra', sans-serif !important;
+  font-weight: 200;
+  font-size: 18px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  color: #1f1e1d;
+  /* background-color: #f5ece5; */
+}
+
+
+.footer .icon-link {
+    font-size: 25px;
+    color: #000;
+}
+
+.link-block a {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.dnerf {
+  font-variant: small-caps;
+}
+
+
+.teaser .hero-body {
+  padding-top: 0;
+  padding-bottom: 3rem;
+  width: 700px;
+}
+
+.teaser {
+  font-family: 'Google Sans', sans-serif;
+}
+
+.inversion{
+  margin: 0px auto;
+  padding-top: 0;
+  padding-bottom: 3rem;
+  width:1000px;
+}
+
+
+
+.publication-title {
+  font-family: 'GT Ultra', sans-serif;
+  font-size: 32pt;
+  font-weight: bold;
+}
+
+.publication-banner {
+  max-height: parent;
+
+}
+
+.publication-banner video {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  object-fit: fit;
+}
+
+.publication-header .hero-body {
+}
+
+
+.publication-authors {
+    font-family: 'Google Sans', sans-serif;
+}
+
+.publication-venue {
+    color: #555;
+    width: fit-content;
+    font-weight: bold;
+}
+
+.publication-awards {
+    color: #ff3860;
+    width: fit-content;
+    font-weight: bolder;
+}
+
+.publication-authors {
+}
+
+.publication-authors a {
+   color: hsl(204, 86%, 53%) !important;
+}
+
+.publication-authors a:hover {
+    text-decoration: underline;
+}
+
+.author-block {
+  display: inline-block;
+}
+
+.publication-banner img {
+}
+
+.publication-authors {
+  /*color: #4286f4;*/
+}
+
+.publication-video {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%;
+
+    overflow: hidden;
+    border-radius: 10px !important;
+}
+
+.publication-video iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.publication-body img {
+}
+
+.results-carousel {
+  overflow: hidden;
+}
+
+
+.interpolation-panel {
+  background: #f5f5f5;
+  border-radius: 10px;
+}
+
+.interpolation-panel .interpolation-image {
+  width: 100%;
+  border-radius: 5px;
+}
+
+.interpolation-video-column {
+}
+
+.interpolation-panel .slider {
+  margin: 0 !important;
+}
+
+.interpolation-panel .slider {
+  margin: 0 !important;
+}
+
+#interpolation-image-wrapper {
+  width: 100%;
+}
+#interpolation-image-wrapper img {
+  border-radius: 5px;
+}
+
+.cit {
+  background-color: rgba(26, 25, 31, 0.05);
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  display: inline-block;
+  margin: 0 auto;
+  overflow-y: hidden;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Code', monospace;
+}
+
+.cit_cont {
+  display: flex;
+}
+
+/* Style changes */
+.collabs {
+  display: flex;
+  align-items: center;
+  gap: 100px;
+  justify-content: center; /* Center-align items horizontally within the .collabs div */
+  width: fit-content; /* Adjust the width of .collabs to fit its content */
+  margin: 0 auto; /* Center-align the .collabs div within its parent */
+}
+.collabs img {
+  width: auto;  /* Set a standard width for images */
+  height: 70px;  /* Maintain aspect ratio */
+}
+.collabs img[src$="rice.svg"] {
+  height: 50px; /* Smaller width for the Rice icon */
+}
+
+.snap {
+  display: flex;  
+  align-items: center;  /* Center-align items vertically */
+}
+
+.snap span {
+  margin-left: 10px;  /* Space between the image and the text */
+  font-size: 25px;  /* Text size */
+  font-weight: bold;  /* Bold text */
+}
+
+
+.models {
+  max-width: 1200px; /* Limit the maximum width */
+  /* margin: auto; Center the container */
+  /* padding: 20px; */
+}
+.models-container {
+  display: flex;
+  flex-wrap: wrap; /* Allows wrapping on smaller screens */
+}
+
+.model img {
+  width: 100%; /* Responsive image width, you can adjust this to a fixed percent as per design needs */
+  height: auto; /* Maintain aspect ratio */
+  margin-bottom: 20px; /* Space between the image and the text */
+}
+
+.lead {
+  text-align: justify;
+  font-size: 16px;
+  line-height: 1.6;
+  width: 100%; /* Ensure the paragraph uses the full width available in the column */
+}
+
+.model img {
+  width: 100%; /* Maintain full width within the column */
+  max-height: 500px; /* Set a maximum height for all images */
+  object-fit: cover; /* This will cover the area of the box without distorting aspect ratios */
+}
+
+.model {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Distributes space between and at the start/end of the container's cross axis */
+  align-items: center;
+  flex: 1;
+  min-width: 300px;
+  max-width: 50%;
+  /* padding: 20px; */
+}
+
+.lead {
+  text-align: justify;
+  font-size: 16px;
+  line-height: 1.6;
+  width: 100%;
+  align-self: flex-end; /* Aligns the paragraph at the bottom of the flex container */
+}
